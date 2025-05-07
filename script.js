@@ -43,20 +43,22 @@ toggleBtn.addEventListener('click', () => {
 
 // --- Audio Playback ---
 function playClick(accent = false) {
-  const osc = audioCtx.createOscillator();
-  const envelope = audioCtx.createGain();
+    const osc = audioCtx.createOscillator();
+    const envelope = audioCtx.createGain();
 
-  osc.type = 'square';
-  osc.frequency.value = accent ? 1000 : 700;
-  envelope.gain.setValueAtTime(1, audioCtx.currentTime);
-  envelope.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.type = 'sine'; // smoother than square
+    osc.frequency.value = accent ? 880 : 440; // A5 and A4 tones
 
-  osc.connect(envelope);
-  envelope.connect(audioCtx.destination);
+    envelope.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    envelope.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
 
-  osc.start(audioCtx.currentTime);
-  osc.stop(audioCtx.currentTime + 0.1);
+    osc.connect(envelope);
+    envelope.connect(audioCtx.destination);
+
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.2);
 }
+  
 
 // --- Visual Beat Indicator ---
 function pulseIndicator(accent) {
