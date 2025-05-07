@@ -1,7 +1,7 @@
 let isPlaying = false;
 let bpm = 120;
 let beatInterval;
-let audioCtx;
+let audioCtx = null;
 let currentBeat = 0;
 let beatsPerMeasure = 4;
 
@@ -11,13 +11,14 @@ const toggleBtn = document.getElementById('toggle-btn');
 const timeSignatureSelect = document.getElementById('time-signature');
 const beatIndicator = document.getElementById('beat-indicator');
 
-// Update tempo display and logic
+// Update tempo display and timing
 tempoInput.addEventListener('input', () => {
   bpm = parseInt(tempoInput.value, 10);
   tempoDisplay.textContent = bpm;
+
   if (isPlaying) {
-    stopMetronome();
-    startMetronome();
+    clearInterval(beatInterval); // just reset the interval
+    startBeatLoop();
   }
 });
 
@@ -27,7 +28,7 @@ timeSignatureSelect.addEventListener('change', () => {
   currentBeat = 0;
 });
 
-// Toggle play/stop
+// Play/Stop toggle
 toggleBtn.addEventListener('click', () => {
   if (isPlaying) {
     stopMetronome();
@@ -36,7 +37,7 @@ toggleBtn.addEventListener('click', () => {
   }
 });
 
-// --- Audio Playback ---
+// --- Audio ---
 function playClick(accent = false) {
   const osc = audioCtx.createOscillator();
   const envelope = audioCtx.createGain();
@@ -55,31 +56,22 @@ function playClick(accent = false) {
 
 // --- Visual Indicator ---
 function pulseIndicator(accent) {
-  // Reset
   beatIndicator.classList.remove('bg-blue-500', 'bg-gray-400', 'scale-125', 'opacity-100');
 
-  // Pulse effect
   beatIndicator.classList.add(
     accent ? 'bg-blue-500' : 'bg-gray-400',
     'scale-125',
     'opacity-100'
   );
 
-  // Revert after short delay
   setTimeout(() => {
     beatIndicator.classList.remove('scale-125', 'opacity-100');
     beatIndicator.classList.add('opacity-30');
   }, 150);
 }
 
-// --- Start / Stop ---
-function startMetronome() {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-
+// --- Beat Loop Only ---
+function startBeatLoop() {
   const intervalMs = (60 / bpm) * 1000;
 
   beatInterval = setInterval(() => {
@@ -89,6 +81,19 @@ function startMetronome() {
 
     currentBeat = (currentBeat + 1) % beatsPerMeasure;
   }, intervalMs);
+}
+
+// --- Start/Stop ---
+function startMetronome() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  startBeatLoop();
 
   toggleBtn.textContent = '⏹️ Stop';
   isPlaying = true;
