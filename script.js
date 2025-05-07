@@ -5,6 +5,7 @@ let audioCtx = null;
 let currentBeat = 0;
 let beatsPerMeasure = 4;
 let accentPattern = [true, false, false, false];
+let accentButtons = [];
 
 const tempoInput = document.getElementById('tempo');
 const tempoDisplay = document.getElementById('tempo-display');
@@ -73,10 +74,11 @@ function pulseIndicator(accent) {
   }, 150);
 }
 
-// --- Accent Button Controls ---
+// --- Accent Button UI ---
 function updateAccentButtons() {
   accentControls.innerHTML = '';
   accentPattern = [];
+  accentButtons = [];
 
   for (let i = 0; i < beatsPerMeasure; i++) {
     const btn = document.createElement('button');
@@ -97,6 +99,7 @@ function updateAccentButtons() {
     });
 
     accentControls.appendChild(btn);
+    accentButtons.push(btn);
   }
 }
 
@@ -106,8 +109,17 @@ function startBeatLoop() {
 
   beatInterval = setInterval(() => {
     const isAccent = accentPattern[currentBeat];
+
     playClick(isAccent);
     pulseIndicator(isAccent);
+
+    // Live button highlight
+    accentButtons.forEach((btn, i) => {
+      btn.classList.remove('ring-2', 'ring-blue-500', 'scale-110');
+      if (i === currentBeat) {
+        btn.classList.add('ring-2', 'ring-blue-500', 'scale-110');
+      }
+    });
 
     currentBeat = (currentBeat + 1) % beatsPerMeasure;
   }, intervalMs);
@@ -134,6 +146,11 @@ function stopMetronome() {
   toggleBtn.textContent = '▶️ Play';
   isPlaying = false;
   currentBeat = 0;
+
+  // Remove button highlights
+  accentButtons.forEach(btn => {
+    btn.classList.remove('ring-2', 'ring-blue-500', 'scale-110');
+  });
 }
 
 // --- Initial Setup ---
