@@ -32,33 +32,46 @@ timeSignatureSelect.addEventListener('change', () => {
   updateAccentButtons();
 });
 
-// --- Play/Stop Toggle ---
+// --- Play/Stop Toggle with Mobile AudioContext Fix ---
 toggleBtn.addEventListener('click', () => {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().then(() => {
+      toggleMetronome();
+    });
+  } else {
+    toggleMetronome();
+  }
+});
+
+function toggleMetronome() {
   if (isPlaying) {
     stopMetronome();
   } else {
     startMetronome();
   }
-});
-
-// --- Audio Playback ---
-function playClick(accent = false) {
-    const osc = audioCtx.createOscillator();
-    const envelope = audioCtx.createGain();
-
-    osc.type = 'sine'; // smoother than square
-    osc.frequency.value = accent ? 880 : 440; // A5 and A4 tones
-
-    envelope.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    envelope.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-
-    osc.connect(envelope);
-    envelope.connect(audioCtx.destination);
-
-    osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.2);
 }
-  
+
+// --- Audio Playback (Softer Click) ---
+function playClick(accent = false) {
+  const osc = audioCtx.createOscillator();
+  const envelope = audioCtx.createGain();
+
+  osc.type = 'sine'; // Softer than square
+  osc.frequency.value = accent ? 880 : 440;
+
+  envelope.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  envelope.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+
+  osc.connect(envelope);
+  envelope.connect(audioCtx.destination);
+
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + 0.2);
+}
 
 // --- Visual Beat Indicator ---
 function pulseIndicator(accent) {
@@ -76,7 +89,7 @@ function pulseIndicator(accent) {
   }, 150);
 }
 
-// --- Accent Button UI ---
+// --- Accent Buttons UI ---
 function updateAccentButtons() {
   accentControls.innerHTML = '';
   accentPattern = [];
@@ -115,7 +128,7 @@ function startBeatLoop() {
     playClick(isAccent);
     pulseIndicator(isAccent);
 
-    // Live button highlight
+    // Highlight current accent button
     accentButtons.forEach((btn, i) => {
       btn.classList.remove('ring-2', 'ring-blue-500', 'scale-110');
       if (i === currentBeat) {
@@ -129,16 +142,7 @@ function startBeatLoop() {
 
 // --- Start / Stop ---
 function startMetronome() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-
   startBeatLoop();
-
   toggleBtn.textContent = '⏹️ Stop';
   isPlaying = true;
 }
