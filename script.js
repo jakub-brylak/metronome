@@ -4,31 +4,34 @@ let beatInterval;
 let audioCtx = null;
 let currentBeat = 0;
 let beatsPerMeasure = 4;
+let accentPattern = [true, false, false, false];
 
 const tempoInput = document.getElementById('tempo');
 const tempoDisplay = document.getElementById('tempo-display');
 const toggleBtn = document.getElementById('toggle-btn');
 const timeSignatureSelect = document.getElementById('time-signature');
 const beatIndicator = document.getElementById('beat-indicator');
+const accentControls = document.getElementById('accent-controls');
 
-// Update tempo display and timing
+// --- Tempo Control ---
 tempoInput.addEventListener('input', () => {
   bpm = parseInt(tempoInput.value, 10);
   tempoDisplay.textContent = bpm;
 
   if (isPlaying) {
-    clearInterval(beatInterval); // just reset the interval
+    clearInterval(beatInterval);
     startBeatLoop();
   }
 });
 
-// Update time signature
+// --- Time Signature Change ---
 timeSignatureSelect.addEventListener('change', () => {
   beatsPerMeasure = parseInt(timeSignatureSelect.value, 10);
   currentBeat = 0;
+  updateAccentButtons();
 });
 
-// Play/Stop toggle
+// --- Play/Stop Toggle ---
 toggleBtn.addEventListener('click', () => {
   if (isPlaying) {
     stopMetronome();
@@ -37,7 +40,7 @@ toggleBtn.addEventListener('click', () => {
   }
 });
 
-// --- Audio ---
+// --- Audio Playback ---
 function playClick(accent = false) {
   const osc = audioCtx.createOscillator();
   const envelope = audioCtx.createGain();
@@ -54,7 +57,7 @@ function playClick(accent = false) {
   osc.stop(audioCtx.currentTime + 0.1);
 }
 
-// --- Visual Indicator ---
+// --- Visual Beat Indicator ---
 function pulseIndicator(accent) {
   beatIndicator.classList.remove('bg-blue-500', 'bg-gray-400', 'scale-125', 'opacity-100');
 
@@ -70,12 +73,39 @@ function pulseIndicator(accent) {
   }, 150);
 }
 
-// --- Beat Loop Only ---
+// --- Accent Button Controls ---
+function updateAccentButtons() {
+  accentControls.innerHTML = '';
+  accentPattern = [];
+
+  for (let i = 0; i < beatsPerMeasure; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'w-8 h-8 rounded-full text-sm flex items-center justify-center ' +
+                    'border border-white transition ' +
+                    (i === 0 ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-400');
+    btn.textContent = i + 1;
+    btn.dataset.index = i;
+
+    accentPattern[i] = i === 0;
+
+    btn.addEventListener('click', () => {
+      accentPattern[i] = !accentPattern[i];
+      btn.classList.toggle('bg-blue-500');
+      btn.classList.toggle('text-white');
+      btn.classList.toggle('bg-gray-800');
+      btn.classList.toggle('text-gray-400');
+    });
+
+    accentControls.appendChild(btn);
+  }
+}
+
+// --- Beat Loop ---
 function startBeatLoop() {
   const intervalMs = (60 / bpm) * 1000;
 
   beatInterval = setInterval(() => {
-    const isAccent = currentBeat === 0;
+    const isAccent = accentPattern[currentBeat];
     playClick(isAccent);
     pulseIndicator(isAccent);
 
@@ -83,7 +113,7 @@ function startBeatLoop() {
   }, intervalMs);
 }
 
-// --- Start/Stop ---
+// --- Start / Stop ---
 function startMetronome() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -105,3 +135,6 @@ function stopMetronome() {
   isPlaying = false;
   currentBeat = 0;
 }
+
+// --- Initial Setup ---
+updateAccentButtons();
