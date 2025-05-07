@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metronome</title>
+  <script defer src="script.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md space-y-6 text-center">
+    
+    <h1 class="text-3xl font-bold">🎵 Metronome</h1>
+
+    <!-- Tempo Control -->
+    <div>
+      <label for="tempo" class="block text-sm mb-2">Tempo: <span id="tempo-display">120</span> BPM</label>
+      <input type="range" id="tempo" min="40" max="240" value="120"
+        class="w-full accent-blue-500">
+    </div>
+
+    <!-- Time Signature -->
+    <div>
+      <label for="time-signature" class="block text-sm mb-2">Time Signature</label>
+      <select id="time-signature" class="w-full bg-gray-800 border border-gray-700 rounded p-2">
+        <option value="4">4/4</option>
+        <option value="3">3/4</option>
+        <option value="6">6/8</option>
+      </select>
+    </div>
+
+    <!-- Play/Stop Button -->
+    <button id="toggle-btn" class="w-full py-3 bg-blue-600 rounded text-lg font-semibold hover:bg-blue-700">
+      ▶️ Play
+    </button>
+  </div>
+</body>
+</html>
